@@ -29,8 +29,8 @@ print(f'Using device: {DEVICE}')
 # DATASET
 class IMDBDataset(Dataset):
     def __init__(self, data, tokenizer):
-        self.texts = [d['texts'] for d in data]
-        self.labels = [d['labels'] for d in data]
+        self.texts = [d['text'] for d in data]
+        self.labels = [d['label'] for d in data]
         self.tokenizer = tokenizer
     
     def __len__(self):
@@ -143,6 +143,8 @@ for epoch in range(EPOCHS):
     print(f'Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | Val Acc: {val_acc:.4f}')
 
     if val_acc > best_acc:
-        best_acc = val_acc torch.save(model.state_dict(), SAVE_PATH)
-        print(f' Model saved! Best accuracy: {best_acc:.4f}') print(f'\nTraining complete! Best Val Accuracy: {best_acc:.4f}')
+        best_acc = val_acc 
+        torch.save(model.state_dict(), SAVE_PATH)
+        print(f' Model saved! Best accuracy: {best_acc:.4f}') 
+        print(f'\nTraining complete! Best Val Accuracy: {best_acc:.4f}')
         
