@@ -12,10 +12,10 @@ import numpy as np
 
 # CONFIG
 MODEL_NAME='bert-base-uncased'
-MAX_LENGTH='128'
-BATCH_SIZE='16'
-EPOCHS='3'
-LR='2e-5'
+MAX_LENGTH=128
+BATCH_SIZE=16
+EPOCHS=3
+LR=2e-5
 TRAIN_SIZE=2000
 TEST_SIZE=500
 SAVE_PATH='./models/bert_sentiment.pth'
@@ -37,8 +37,8 @@ class IMDBDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, index):
-        enc = self.tokeinzer(self.texts[index], 
-            padding='max_lenght', 
+        enc = self.tokenizer(self.texts[index], 
+            padding='max_length', 
             truncation=True, 
             max_length=MAX_LENGTH, 
             return_tensors='pt'
@@ -81,13 +81,13 @@ scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=total_st
 
 
 # TRAINING LOOP
-def train_epoch(model, loader, device, scheduler):
+def train_epoch(model, loader, optimizer, scheduler, device):
     model.train
     total_loss, preds_all, labels_all = 0, [], []
     for i, batch in enumerate(loader):
         input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
+        labels = batch['label'].to(device)
 
         optimizer.zero_grad()
 
@@ -107,13 +107,14 @@ def train_epoch(model, loader, device, scheduler):
 
         total_loss += loss.item()
 
-        preds_all.extend(logits.argmax(dim=1).cpu().np())
+        preds_all.extend(logits.argmax(dim=1).cpu().numpy())
 
-        labels_all.extend(labels.cpu().np())
+        labels_all.extend(labels.cpu().numpy())
 
         if (i+1) % 20 == 0:
             print(f' Batch {i+1}/{len(loader)} | Loss: {loss.item():.4f}')
-            acc = accuracy_score(labels_all,preds_all)
+        
+        acc = accuracy_score(labels_all,preds_all)
 
         return total_loss / len(loader), acc
 
@@ -127,8 +128,8 @@ def eval_epoch(model, loader, device):
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['label'].to(device)
             outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-            preds_all.extend(outputs.logits.argmax(dim=1).cpu().np())
-            labels_all.extend(labels.cpu().np())
+            preds_all.extend(outputs.logits.argmax(dim=1).cpu().numpy())
+            labels_all.extend(labels.cpu().numpy())
     return accuracy_score(labels_all, preds_all), preds_all, labels_all
 
 
